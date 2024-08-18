@@ -62,6 +62,7 @@ end
 -- Themes define colours, icons, font and wallpapers.
 --beautiful.init(gears.filesystem.get_themes_dir() .. "default/theme.lua")
 beautiful.init(gears.filesystem.get_themes_dir() .. "default/theme.lua")
+beautiful.wallpaper = "/home/pierrot/Images/Spidey.png"
 
 -- This is used later as the default terminal and editor to run.
 terminal = "gnome-terminal"
@@ -291,6 +292,7 @@ local function set_wallpaper(s)
             wallpaper = wallpaper(s)
         end
         gears.wallpaper.maximized(wallpaper, s, true)
+        --gears.wallpaper.centered(wallpaper, s)
     end
 end
 
