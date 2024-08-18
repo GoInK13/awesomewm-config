@@ -32,6 +32,8 @@ local watch = require("awful.widget.watch")
 --local mpris_widget = require("awesome-wm-widgets.mpris-widget")
 -- New volume
 local volume_pip = require('awesome-wm-widgets.pactl-widget.volume')
+-- Battery widget
+local batteryarc_widget = require("awesome-wm-widgets.batteryarc-widget.batteryarc")
 
 -- {{{ Error handling
 -- Check if awesome encountered an error during startup and fell back to
@@ -65,7 +67,7 @@ beautiful.init(gears.filesystem.get_themes_dir() .. "default/theme.lua")
 beautiful.wallpaper = "/home/pierrot/Images/Spidey.png"
 
 -- This is used later as the default terminal and editor to run.
-terminal = "gnome-terminal"
+terminal = "alacritty"
 editor = os.getenv("EDITOR") or "editor"
 editor_cmd = terminal .. " -e " .. editor
 
@@ -135,7 +137,7 @@ menubar.utils.terminal = terminal -- Set the terminal for applications that requ
 -- }}}
 
 -- Keyboard map indicator and switcher
-mykeyboardlayout = awful.widget.keyboardlayout()
+--mykeyboardlayout = awful.widget.keyboardlayout()
 
 -- {{{ Wibar
 -- Create a textclock widget
@@ -151,34 +153,36 @@ myredshift_bright = wibox.widget.textbox(" 1.0%")
 --Set default value
 rs_temperature = 6500
 rs_brightness = 1.0
-myredshift_temp:connect_signal("button::press",
-    function(_, _, _, button)
-        if button == 1 then
-            rs_temperature = 6500
-        elseif button == 3 then
-            rs_temperature = 3500
-        elseif button == 4 and rs_temperature < 6500 then 
-            rs_temperature = rs_temperature + 500
-        elseif button == 5 and rs_temperature > 3000 then
-            rs_temperature = rs_temperature - 500
-        end
-        myredshift_temp.text = rs_temperature/1000 .. "kK"
-        awful.spawn("redshift -oP -O " .. rs_temperature .." -b " .. rs_brightness)
-    end)
-myredshift_bright:connect_signal("button::press",
-    function(_, _, _, button)
-        if button == 1 then
-            rs_brightness = 1.0
-        elseif button == 3 then
-            rs_brightness = 0.6
-        elseif button == 4 and rs_brightness < 1 then 
-            rs_brightness = rs_brightness + 0.1
-        elseif button == 5 and rs_brightness > 0.3 then 
-            rs_brightness = rs_brightness - 0.1
-        end
-        myredshift_bright.text = " " .. rs_brightness .. "%"
-        awful.spawn("redshift -oP -O " .. rs_temperature .." -b " .. rs_brightness)
-    end)
+-- Function to set up brightness
+function f_redshift_temperature(button)
+		if button == 1 then
+				rs_temperature = 6500
+		elseif button == 3 then
+				rs_temperature = 3500
+		elseif button == 4 and rs_temperature < 6500 then 
+				rs_temperature = rs_temperature + 500
+		elseif button == 5 and rs_temperature > 2000 then
+				rs_temperature = rs_temperature - 500
+		end
+		myredshift_temp.text = rs_temperature/1000 .. "kK"
+		awful.spawn("redshift -oP -O " .. rs_temperature .." -b " .. rs_brightness)
+end
+-- Function to set down brightness
+function f_redshift_brightness(button)
+		if button == 1 then
+				rs_brightness = 1.0
+		elseif button == 3 then
+				rs_brightness = 0.6
+		elseif button == 4 and rs_brightness < 1 then 
+				rs_brightness = rs_brightness + 0.1
+		elseif button == 5 and rs_brightness > 0.3 then 
+				rs_brightness = rs_brightness - 0.1
+		end
+		myredshift_bright.text = " " .. rs_brightness .. "%"
+		awful.spawn("redshift -oP -O " .. rs_temperature .." -b " .. rs_brightness)
+end
+myredshift_temp:connect_signal("button::press", function(_, _, _, button) f_redshift_temperature(button) end)
+myredshift_bright:connect_signal("button::press", function(_, _, _, button) f_redshift_brightness(button) end)
 --end of redshift
 
 --Rhythmbox
@@ -234,12 +238,18 @@ temperature_widget =  wibox.widget {
         layout = wibox.layout.fixed.horizontal
     }
 watch(
-    'bash -c "sensors | grep \'Sensor 2:\' | awk \'{print $3}\'"', 5,
+    --Desktop version :
+    --'bash -c "sensors | grep \'Sensor 2:\' | awk \'{print $3}\'"', 5,
+    --Laptop version :
+    'bash -c "sensors | grep \'Package id\' | awk \'{print $4}\'"', 5,
     function(widget, stdout, stderr, exitreason, exitcode)
         temperature_widget:get_children_by_id('temp_cpu')[1]:set_text(stdout)
     end)
 watch(
-    'bash -c "sensors | grep \'Tctl:\' | awk \'{print $2}\'"', 5,
+    --Desktop version :
+    --'bash -c "sensors | grep \'Tctl:\' | awk \'{print $2}\'"', 5,
+    --Laptop version :
+    'bash -c "sensors | grep \'temp1:\' | awk \'{print $2}\'"', 5,
     function(widget, stdout, stderr, exitreason, exitcode)
         temperature_widget:get_children_by_id('temp_gpu')[1]:set_text(stdout)
     end)
@@ -287,7 +297,9 @@ local tasklist_buttons = gears.table.join(
                   --Close client when click prev in tasklist
                      awful.button({ }, 8, function (c) 
                                             c:kill()
-                                        end))
+                                        end),
+                     awful.button({ }, 2, function (c) c:kill() end)
+	     )
 
 local function set_wallpaper(s)
     -- Wallpaper
@@ -353,6 +365,8 @@ awful.screen.connect_for_each_screen(function(s)
                 ram_widget(),
                 temperature_widget,
                 net_speed_widget({timeout=2, width=40}),
+				batteryarc_widget({show_current_level=true, 
+					arc_thickness=1}),
                 volume_pip({widget_type = 'arc'}),
                 sprtr,
                 mytextclock,
@@ -519,8 +533,10 @@ globalkeys = gears.table.join(
     awful.key({}, "XF86AudioNext", function()
         awful.util.spawn("playerctl next", false) end),
     awful.key({}, "XF86AudioPrev", function()
-        awful.util.spawn("playerctl previous", false) end)
-    --End of sound shortcut
+        awful.util.spawn("playerctl previous", false) end),
+    awful.key({}, "XF86MonBrightnessDown", function() f_redshift_brightness(5) end),
+    awful.key({}, "XF86MonBrightnessUp", function() f_redshift_brightness(4) end)
+    --End of shortcut
 
 
 )

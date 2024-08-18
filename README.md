@@ -22,6 +22,27 @@ Section "InputClass"
 EndSection
 ```
 
+    setxkbmap fr oss -option caps:escape
+Or (better ): 
+    sudo localectl set-x11-keymap fr oss "" "caps:escape"
+Will get :
+
+    cat /etc/X11/xorg.conf.d/00-keyboard.conf
+    
+```
+# Written by systemd-localed(8), read by systemd-localed and Xorg. It's
+# probably wise not to edit this file manually. Use localectl(1) to
+# update this file.
+Section "InputClass"
+        Identifier "system-keyboard"
+        MatchIsKeyboard "on"
+        Option "XkbLayout" "fr"
+        Option "XkbModel"   "pc105"
+        Option "XkbVariant" "oss"
+        Option "XkbOptions" "caps:escape"
+EndSection
+```
+
 ## TODO 
 https://github.com/lcpz/awesome-copycats : chose themes[7]
 `sudo pacman -S zsh`
