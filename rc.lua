@@ -209,6 +209,12 @@ rhythmbox_widget:connect_signal("button::press",
         elseif button == 3 then
             awful.spawn("rhythmbox-client --pause")
             rhythmbox_widget:get_children_by_id('icon')[1]:set_image("/usr/share/icons/Yaru/scalable/multimedia/pause-symbolic.svg")
+        elseif button == 9 then
+            awful.spawn("rhythmbox-client --next")
+            rhythmbox_widget:get_children_by_id('icon')[1]:set_image("/usr/share/icons/Yaru/scalable/multimedia/play-symbolic.svg")
+        elseif button == 8 then
+            awful.spawn("rhythmbox-client --previous")
+            rhythmbox_widget:get_children_by_id('icon')[1]:set_image("/usr/share/icons/Yaru/scalable/multimedia/play-symbolic.svg")
         end
     end)
 --End of rhythmbox
