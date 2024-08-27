@@ -14,6 +14,13 @@ sudo pacman -R nautilus
 
 Edit "oss" section.
 
+## Git / SSH
+
+```
+eval "$(ssh-agent -s)"
+ssh-add ~/.ssh/id_rsa
+```
+
 # Laptop
 
 sudo pacman -S acpi
@@ -49,6 +56,20 @@ Section "InputClass"
         Option "XkbVariant" "oss"
         Option "XkbOptions" "caps:escape"
 EndSection
+```
+
+### Wifi
+
+```
+nmcli con show
+nmtui
+```
+
+### Bluetooth
+
+```
+sudo systemctl enable --now bluetooth.service
+
 ```
 
 ## TODO 
