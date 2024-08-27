@@ -8,7 +8,15 @@ sudo pacman -Syu
 sudo pacman -S nemo nemo-fileroller polkit polkit-gnome kicad gnome-terminal redshift rhythmbox firefox bash-completion --needed base-devel git playerctl wireplumber numlockx
 sudo pacman -R nautilus
 
+## Reverse A/Q
+
+    sudo vim /usr/share/X11/xkb/symbols/fr
+
+Edit "oss" section.
+
 # Laptop
+
+sudo pacman -S acpi
 
     cat /etc/X11/xorg.conf.d/30-touchpad.conf
     
