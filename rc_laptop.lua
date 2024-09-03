@@ -174,9 +174,9 @@ function f_redshift_brightness(button)
 		elseif button == 3 then
 				rs_brightness = 0.6
 		elseif button == 4 and rs_brightness < 1 then 
-				rs_brightness = rs_brightness + 0.1
-		elseif button == 5 and rs_brightness > 0.3 then 
-				rs_brightness = rs_brightness - 0.1
+				rs_brightness = rs_brightness + 0.05
+		elseif button == 5 and rs_brightness > 0.1 then 
+				rs_brightness = rs_brightness - 0.05
 		end
 		myredshift_bright.text = " " .. rs_brightness .. "%"
 		awful.spawn("redshift -oP -O " .. rs_temperature .." -b " .. rs_brightness)
@@ -241,7 +241,8 @@ watch(
     --Desktop version :
     --'bash -c "sensors | grep \'Sensor 2:\' | awk \'{print $3}\'"', 5,
     --Laptop version :
-    'bash -c "sensors | grep \'Package id\' | awk \'{print $4}\'"', 5,
+    --'bash -c "sensors | grep \'Package id\' | awk \'{print $4}\'"', 5,
+    'bash -c "sensors | grep \'Sensor 2\' | awk \'{print $3}\'"', 5,
     function(widget, stdout, stderr, exitreason, exitcode)
         temperature_widget:get_children_by_id('temp_cpu')[1]:set_text(stdout)
     end)

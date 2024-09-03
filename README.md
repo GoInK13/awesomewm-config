@@ -4,9 +4,23 @@
 
 Chose pipewire, awesome+gnome, nvidia proprietary
 
+## Connect wifi
+
+1. `iwctl`
+2. `station list` will give a list of all the stations aka simila6to ifconfig in debian
+3. `station wlan0 get-networks` i.e search for the network using the wlan0
+4. look for the wifi ssd that resembles yours. 
+5. `station wlan0 connect SSID_NAME`
+6. it will ask for a password or passphrase 
+7. CTRL+C 
+
+```
+pacman-key --init
+pacman-key --populate archlinux
 sudo pacman -Syu
-sudo pacman -S nemo nemo-fileroller polkit polkit-gnome kicad gnome-terminal redshift rhythmbox firefox bash-completion --needed base-devel git playerctl wireplumber numlockx
+sudo pacman -S nemo nemo-fileroller polkit polkit-gnome kicad gnome-terminal redshift rhythmbox firefox bash-completion --needed base-devel git playerctl wireplumber numlockx less
 sudo pacman -R nautilus
+```
 
 ## Reverse A/Q
 
@@ -69,7 +83,7 @@ nmtui
 
 ```
 sudo systemctl enable --now bluetooth.service
-
+env XDG_CURRENT_DESKTOP=GNOME gnome-control-center
 ```
 
 ## TODO 
