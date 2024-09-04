@@ -34,6 +34,7 @@ local watch = require("awful.widget.watch")
 local volume_pip = require('awesome-wm-widgets.pactl-widget.volume')
 -- Battery widget
 local batteryarc_widget = require("awesome-wm-widgets.batteryarc-widget.batteryarc")
+local screenshot = require("awesome-wm-widgets.screenshot.screenshot")
 
 -- {{{ Error handling
 -- Check if awesome encountered an error during startup and fell back to
@@ -472,11 +473,19 @@ globalkeys = gears.table.join(
     -- Custom program
     awful.key({ modkey,           }, "e", function () awful.spawn("nemo") end,
               {description = "open nemo", group = "launcher"}),
-    awful.key({ modkey,           }, "i", function () awful.spawn("redshift -oP -O 3000 -b 0.5") end,
-              {description = "Set night mode", group = "launcher"}),
-    awful.key({ modkey, "Shift"   }, "i", function () awful.spawn("redshift -oP -O 6500 -b 1") end,
-              {description = "Set night mode", group = "launcher"}),
-    
+    awful.key({ modkey,           }, "i", function () awful.spawn("speedcrunch") end,
+              {description = "Launch speedcrunch", group = "launcher"}),
+    awful.key({ }, "Print", scrot_full,
+          {description = "Take a screenshot of entire screen", group = "screenshot"}),
+    awful.key({ modkey, }, "Print", scrot_selection,
+          {description = "Take a screenshot of selection", group = "screenshot"}),
+    awful.key({ "Shift" }, "Print", scrot_window,
+          {description = "Take a screenshot of focused window", group = "screenshot"}),
+    awful.key({ "Ctrl" }, "Print", scrot_delay,
+          {description = "Take a screenshot of delay", group = "screenshot"}),
+
+
+
 
     awful.key({ modkey,           }, "l",     function () awful.tag.incmwfact( 0.05)          end,
               {description = "increase master width factor", group = "layout"}),
@@ -558,7 +567,7 @@ clientkeys = gears.table.join(
               {description = "move to master", group = "client"}),
     awful.key({ modkey,           }, "o",      function (c) c:move_to_screen()               end,
               {description = "move to screen", group = "client"}),
-    awful.key({ modkey,           }, "t",      function (c) c.ontop = not c.ontop            end,
+    awful.key({ modkey,           }, "y",      function (c) c.ontop = not c.ontop            end,
               {description = "toggle keep on top", group = "client"}),
     awful.key({ modkey,           }, "n",
         function (c)
@@ -585,7 +594,7 @@ clientkeys = gears.table.join(
             c:raise()
         end ,
         {description = "(un)maximize horizontally", group = "client"}),
-    awful.key({ modkey }, 't', function (c) awful.titlebar.toggle(c) end,
+    awful.key({ modkey }, "t", function (c) awful.titlebar.toggle(c) end,
         {description = 'toggle title bar', group = 'client'})
 )
 
@@ -679,6 +688,7 @@ awful.rules.rules = {
           "DTA",  -- Firefox addon DownThemAll.
           "copyq",  -- Includes session name in class.
           "pinentry",
+          "speedcrunch",
         },
         class = {
           "Arandr",

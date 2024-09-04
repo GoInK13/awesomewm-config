@@ -5,9 +5,10 @@ run() {
         "$@" &
     fi
 }
-
+sleep 1
 run "rhythmbox"
 run "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1"
 run "numlockx"
 run "dropbox"
-run "setxkbmap fr oss -option caps:escape"
+setxkbmap fr oss -option caps:escape
+run "unclutter"
