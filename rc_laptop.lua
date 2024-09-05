@@ -243,7 +243,7 @@ watch(
     --'bash -c "sensors | grep \'Sensor 2:\' | awk \'{print $3}\'"', 5,
     --Laptop version :
     --'bash -c "sensors | grep \'Package id\' | awk \'{print $4}\'"', 5,
-    'bash -c "sensors | grep \'Sensor 2\' | awk \'{print $3}\'"', 5,
+    'bash -c "sensors | grep \'edge\' | awk \'{print $2}\'"', 5,
     function(widget, stdout, stderr, exitreason, exitcode)
         temperature_widget:get_children_by_id('temp_cpu')[1]:set_text(stdout)
     end)
@@ -366,7 +366,7 @@ awful.screen.connect_for_each_screen(function(s)
                 cpu_widget({enable_kill_button=true}),
                 ram_widget(),
                 temperature_widget,
-                net_speed_widget({timeout=2, width=40}),
+                net_speed_widget({timeout=2, width=50}),
 				batteryarc_widget({show_current_level=true, 
 					arc_thickness=1,
 					show_notification_mode="on_click"}),

@@ -72,6 +72,15 @@ Section "InputClass"
 EndSection
 ```
 
+### Gnome-control-center :
+
+Install `gnome-control-center`
+Add alias : 
+    `alias gnome-control="env XDG_CURRENT_DESKTOP=GNOME gnome-control-center"`
+Now use :
+    `gnome-control`
+To control Wifi, Bluetooth…
+
 ### Wifi
 
 ```
