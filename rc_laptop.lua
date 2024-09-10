@@ -150,7 +150,7 @@ sprtr:set_text(" | ")
 
 --Redshift
 myredshift_temp   = wibox.widget.textbox("6.5kK")
-myredshift_bright = wibox.widget.textbox(" 1.0%")
+myredshift_bright = wibox.widget.textbox(" 100%")
 --Set default value
 rs_temperature = 6500
 rs_brightness = 1.0
@@ -179,7 +179,7 @@ function f_redshift_brightness(button)
 		elseif button == 5 and rs_brightness > 0.1 then 
 				rs_brightness = rs_brightness - 0.05
 		end
-		myredshift_bright.text = " " .. rs_brightness .. "%"
+		myredshift_bright.text = " " .. math.floor(rs_brightness*100+0.5) .. "%"
 		awful.spawn("redshift -oP -O " .. rs_temperature .." -b " .. rs_brightness)
 end
 myredshift_temp:connect_signal("button::press", function(_, _, _, button) f_redshift_temperature(button) end)
@@ -360,16 +360,18 @@ awful.screen.connect_for_each_screen(function(s)
                 sprtr,
                 rhythmbox_widget,
                 sprtr,
-                myredshift_temp,
-                myredshift_bright,
-                sprtr,
                 cpu_widget({enable_kill_button=true}),
                 ram_widget(),
                 temperature_widget,
                 net_speed_widget({timeout=2, width=50}),
 				batteryarc_widget({show_current_level=true, 
 					arc_thickness=1,
+                    font="Play 5",
 					show_notification_mode="on_click"}),
+                sprtr,
+                myredshift_temp,
+                myredshift_bright,
+                sprtr,
                 volume_pip({widget_type = 'arc'}),
                 sprtr,
                 mytextclock,
@@ -468,8 +470,8 @@ globalkeys = gears.table.join(
               {description = "open a terminal", group = "launcher"}),
     awful.key({ modkey, "Control" }, "r", awesome.restart,
               {description = "reload awesome", group = "awesome"}),
-    awful.key({ modkey, "Shift"   }, "q", awesome.quit,
-              {description = "quit awesome", group = "awesome"}),
+    awful.key({ modkey, "Shift"   }, "q", function() awful.spawn.with_shell("systemctl suspend") end,
+              {description = "Suspend", group = "awesome"}),
     -- Custom program
     awful.key({ modkey,           }, "e", function () awful.spawn("nemo") end,
               {description = "open nemo", group = "launcher"}),
@@ -780,9 +782,9 @@ client.connect_signal("request::titlebars", function(c)
 end)
 
 -- Enable sloppy focus, so that focus follows mouse.
---client.connect_signal("mouse::enter", function(c)
---    c:emit_signal("request::activate", "mouse_enter", {raise = false})
---end)
+client.connect_signal("mouse::enter", function(c)
+    c:emit_signal("request::activate", "mouse_enter", {raise = false})
+end)
 
 client.connect_signal("focus", function(c) c.border_color = beautiful.border_focus end)
 client.connect_signal("unfocus", function(c) c.border_color = beautiful.border_normal end)
