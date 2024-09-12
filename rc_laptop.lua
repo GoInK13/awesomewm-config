@@ -470,12 +470,12 @@ globalkeys = gears.table.join(
               {description = "open a terminal", group = "launcher"}),
     awful.key({ modkey, "Control" }, "r", awesome.restart,
               {description = "reload awesome", group = "awesome"}),
-    awful.key({ modkey, "Shift"   }, "q", function() awful.spawn.with_shell("systemctl suspend") end,
+    awful.key({ modkey, "Control"   }, "q", function() awful.spawn.with_shell("systemctl hibernate") end,
               {description = "Suspend", group = "awesome"}),
     -- Custom program
     awful.key({ modkey,           }, "e", function () awful.spawn("nemo") end,
               {description = "open nemo", group = "launcher"}),
-    awful.key({ modkey,           }, "i", function () awful.spawn("speedcrunch") end,
+    awful.key({ modkey,           }, "$", function () awful.spawn("speedcrunch") end,
               {description = "Launch speedcrunch", group = "launcher"}),
     awful.key({ }, "Print", scrot_full,
           {description = "Take a screenshot of entire screen", group = "screenshot"}),
@@ -691,6 +691,8 @@ awful.rules.rules = {
           "copyq",  -- Includes session name in class.
           "pinentry",
           "speedcrunch",
+          "nemo",
+          "loupe",
         },
         class = {
           "Arandr",
