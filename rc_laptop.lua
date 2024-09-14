@@ -153,8 +153,22 @@ myredshift_temp   = wibox.widget.textbox("6.5kK")
 myredshift_bright = wibox.widget.textbox(" 100%")
 --Set default value
 rs_temperature = 6500
-rs_brightness = 1.0
--- Function to set up brightness
+rs_brightness = 100
+-- Function to really set brightness with backlight and redshift
+function f_set_brightness()
+    --awful.spawn.with_shell("echo " .. math.floor(1.0+(rs_brightness/10)) .. " > /dev/shm/test")
+    local brightness_backlight = math.floor(rs_brightness*255/100)
+    awful.spawn.with_shell("echo " .. brightness_backlight .. " > /dev/shm/test")
+    if rs_brightness < 0 then
+        local brightness = 1.0+(rs_brightness/10)
+        awful.spawn.with_shell("echo 0 > /sys/class/backlight/amdgpu_bl1/brightness") 
+        awful.spawn("redshift -oP -O " .. rs_temperature .. " -b " .. brightness)
+    else
+        awful.spawn.with_shell("echo " .. brightness_backlight .. " > /sys/class/backlight/amdgpu_bl1/brightness") 
+        awful.spawn("redshift -oP -O " .. rs_temperature .. " -b 1.0")
+    end
+end
+-- Function to set temperature
 function f_redshift_temperature(button)
 		if button == 1 then
 				rs_temperature = 6500
@@ -166,21 +180,25 @@ function f_redshift_temperature(button)
 				rs_temperature = rs_temperature - 500
 		end
 		myredshift_temp.text = rs_temperature/1000 .. "kK"
-		awful.spawn("redshift -oP -O " .. rs_temperature .." -b " .. rs_brightness)
+        f_set_brightness(rs_brightness)
 end
--- Function to set down brightness
+-- Function to set brightness
 function f_redshift_brightness(button)
 		if button == 1 then
-				rs_brightness = 1.0
+				rs_brightness = 100
 		elseif button == 3 then
-				rs_brightness = 0.6
-		elseif button == 4 and rs_brightness < 1 then 
-				rs_brightness = rs_brightness + 0.05
-		elseif button == 5 and rs_brightness > 0.1 then 
-				rs_brightness = rs_brightness - 0.05
+				rs_brightness = 60
+		elseif button == 4 and rs_brightness < 100 and rs_brightness >= 10 then 
+				rs_brightness = rs_brightness + 5
+		elseif button == 4 and rs_brightness < 100 then 
+				rs_brightness = rs_brightness + 1
+		elseif button == 5 and rs_brightness > -10 and rs_brightness <= 10 then 
+				rs_brightness = rs_brightness - 1
+		elseif button == 5 and rs_brightness > -10 then 
+				rs_brightness = rs_brightness - 5
 		end
-		myredshift_bright.text = " " .. math.floor(rs_brightness*100+0.5) .. "%"
-		awful.spawn("redshift -oP -O " .. rs_temperature .." -b " .. rs_brightness)
+		myredshift_bright.text = " " .. rs_brightness .. "%"
+        f_set_brightness(rs_brightness)
 end
 myredshift_temp:connect_signal("button::press", function(_, _, _, button) f_redshift_temperature(button) end)
 myredshift_bright:connect_signal("button::press", function(_, _, _, button) f_redshift_brightness(button) end)
@@ -470,7 +488,7 @@ globalkeys = gears.table.join(
               {description = "open a terminal", group = "launcher"}),
     awful.key({ modkey, "Control" }, "r", awesome.restart,
               {description = "reload awesome", group = "awesome"}),
-    awful.key({ modkey, "Control"   }, "q", function() awful.spawn.with_shell("systemctl hibernate") end,
+    awful.key({ modkey, "Control"   }, "q", function() awful.spawn.with_shell("i3lock -i /home/pierrot/Images/Spidey_screen.png && systemctl hibernate") end,
               {description = "Suspend", group = "awesome"}),
     -- Custom program
     awful.key({ modkey,           }, "e", function () awful.spawn("nemo") end,
