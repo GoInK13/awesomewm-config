@@ -150,7 +150,11 @@ sprtr:set_text(" | ")
 
 --Redshift
 myredshift_temp   = wibox.widget.textbox("6.5kK")
-myredshift_bright = wibox.widget.textbox(" 100%")
+myredshift_bright = wibox.widget.textbox("100%")
+myredshift_logo   = {
+    image = "/home/pierrot/.config/awesome/Others/temperature.svg",
+    widget = wibox.widget.imagebox
+}
 --Set default value
 rs_temperature = 6500
 rs_brightness = 100
@@ -400,6 +404,7 @@ awful.screen.connect_for_each_screen(function(s)
 					show_notification_mode="on_click"}),
                 sprtr,
                 myredshift_temp,
+                myredshift_logo,
                 myredshift_bright,
                 sprtr,
                 volume_pip({widget_type = 'arc'}),
