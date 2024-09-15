@@ -244,12 +244,18 @@ rhythmbox_widget:connect_signal("button::press",
 
 --Start temperature
 temperature_widget =  wibox.widget {
-        {   widget = wibox.widget.textbox("CPU:") },
+        {   
+            image = "/home/pierrot/.config/awesome/Others/cpu.svg",
+            widget = wibox.widget.imagebox
+        },
         {
             id = 'temp_cpu',
             widget = wibox.widget.textbox
         },
-        {   widget = wibox.widget.textbox(",GPU:") },
+        {   
+            image = "/home/pierrot/.config/awesome/Others/gpu.svg",
+            widget = wibox.widget.imagebox
+        },
         {
             id = 'temp_gpu',
             widget = wibox.widget.textbox
@@ -261,7 +267,7 @@ watch(
     --'bash -c "sensors | grep \'Sensor 2:\' | awk \'{print $3}\'"', 5,
     --Laptop version :
     --'bash -c "sensors | grep \'Package id\' | awk \'{print $4}\'"', 5,
-    'bash -c "sensors | grep \'edge\' | awk \'{print $2}\'"', 5,
+    'bash -c "sensors | grep \'Tctl:\' | awk \'{print $2}\'"', 5,
     function(widget, stdout, stderr, exitreason, exitcode)
         temperature_widget:get_children_by_id('temp_cpu')[1]:set_text(stdout)
     end)
@@ -269,11 +275,16 @@ watch(
     --Desktop version :
     --'bash -c "sensors | grep \'Tctl:\' | awk \'{print $2}\'"', 5,
     --Laptop version :
-    'bash -c "sensors | grep \'temp1:\' | awk \'{print $2}\'"', 5,
+    'bash -c "sensors | grep \'edge:\' | awk \'{print $2}\'"', 5,
     function(widget, stdout, stderr, exitreason, exitcode)
         temperature_widget:get_children_by_id('temp_gpu')[1]:set_text(stdout)
     end)
 --End of temperature
+-- Open Tuxedo CC when click on temperature
+temperature_widget:connect_signal("button::press", function(_, _, _, button) 
+    awful.spawn("tuxedo-control-center")
+end)
+-- End of TCC
 
 -- Create a wibox for each screen and add it
 local taglist_buttons = gears.table.join(
@@ -384,7 +395,8 @@ awful.screen.connect_for_each_screen(function(s)
                 net_speed_widget({timeout=2, width=50}),
 				batteryarc_widget({show_current_level=true, 
 					arc_thickness=1,
-                    font="Play 5",
+                    size=24,
+                    font="Play 7",
 					show_notification_mode="on_click"}),
                 sprtr,
                 myredshift_temp,
