@@ -1,6 +1,8 @@
 -- If LuaRocks is installed, make sure that packages installed through it are
 -- found (e.g. lgi). If LuaRocks is not installed, do nothing.
 pcall(require, "luarocks.loader")
+-- Set date in local language
+os.setlocale(os.getenv("LANG"))
 
 -- Standard awesome library
 local gears = require("gears")
@@ -583,8 +585,14 @@ globalkeys = gears.table.join(
     awful.key({}, "XF86AudioPrev", function()
         awful.util.spawn("playerctl previous", false) end),
     awful.key({}, "XF86MonBrightnessDown", function() f_redshift_brightness(5) end),
-    awful.key({}, "XF86MonBrightnessUp", function() f_redshift_brightness(4) end)
+    awful.key({}, "XF86MonBrightnessUp", function() f_redshift_brightness(4) end),
     --End of shortcut
+
+    -- Power shortcut
+    awful.key({}, "XF86PowerOff", function() 
+        awful.spawn.with_shell("zenity --question --title='Extinction !' --text='Confirmation?' --timeout 10; [ $? == 1 ] || shutdown -h now")
+    end)
+    -- End of power shortcut
 
 
 )
