@@ -163,8 +163,8 @@ rs_brightness = 100
 -- Function to really set brightness with backlight and redshift
 function f_set_brightness()
     --awful.spawn.with_shell("echo " .. math.floor(1.0+(rs_brightness/10)) .. " > /dev/shm/test")
+    os.setlocale('C')
     local brightness_backlight = math.floor(rs_brightness*255/100)
-    awful.spawn.with_shell("echo " .. brightness_backlight .. " > /dev/shm/test")
     if rs_brightness < 0 then
         local brightness = 1.0+(rs_brightness/10)
         awful.spawn.with_shell("echo 0 > /sys/class/backlight/amdgpu_bl1/brightness") 
@@ -173,6 +173,7 @@ function f_set_brightness()
         awful.spawn.with_shell("echo " .. brightness_backlight .. " > /sys/class/backlight/amdgpu_bl1/brightness") 
         awful.spawn("redshift -oP -O " .. rs_temperature .. " -b 1.0")
     end
+    os.setlocale(os.getenv("LANG"))
 end
 -- Function to set temperature
 function f_redshift_temperature(button)
@@ -194,11 +195,11 @@ function f_redshift_brightness(button)
 				rs_brightness = 100
 		elseif button == 3 then
 				rs_brightness = 60
-		elseif button == 4 and rs_brightness < 100 and rs_brightness >= 10 then 
+		elseif button == 4 and rs_brightness < 100 and rs_brightness >= 20 then 
 				rs_brightness = rs_brightness + 5
 		elseif button == 4 and rs_brightness < 100 then 
 				rs_brightness = rs_brightness + 1
-		elseif button == 5 and rs_brightness > -10 and rs_brightness <= 10 then 
+		elseif button == 5 and rs_brightness > -10 and rs_brightness <= 20 then 
 				rs_brightness = rs_brightness - 1
 		elseif button == 5 and rs_brightness > -10 then 
 				rs_brightness = rs_brightness - 5
@@ -232,10 +233,10 @@ watch(
     end)
 rhythmbox_widget:connect_signal("button::press",
     function(_, _, _, button)
-        if button == 1 then
+        if button == 3 then
             awful.spawn("rhythmbox-client --play")
             rhythmbox_widget:get_children_by_id('icon')[1]:set_image("/usr/share/icons/Yaru/scalable/multimedia/play-symbolic.svg")
-        elseif button == 3 then
+        elseif button == 1 then
             awful.spawn("rhythmbox-client --pause")
             rhythmbox_widget:get_children_by_id('icon')[1]:set_image("/usr/share/icons/Yaru/scalable/multimedia/pause-symbolic.svg")
         elseif button == 9 then
@@ -287,10 +288,17 @@ watch(
     end)
 --End of temperature
 -- Open Tuxedo CC when click on temperature
-temperature_widget:connect_signal("button::press", function(_, _, _, button) 
-    awful.spawn("tuxedo-control-center")
-end)
+temperature_widget:connect_signal("button::press", 
+    function(_, _, _, button) 
+        if button == 1 then
+            awful.spawn("tuxedo-control-center")
+        elseif button == 3 then
+            awful.spawn("gnome-system-monitor")
+        end
+    end
+)
 -- End of TCC
+
 
 -- Create a wibox for each screen and add it
 local taglist_buttons = gears.table.join(
@@ -836,8 +844,9 @@ client.connect_signal("unfocus", function(c) c.border_color = beautiful.border_n
 -- }}}
 
 -- Set screen
-awful.spawn.with_shell("xrandr --output DP-0 --mode 2560x1440 --rate 240 --primary")
-awful.spawn.with_shell("xrandr --output HDMI-0 --mode 1920x1080 --rate 60 --left-of DP-0")
+--awful.spawn.with_shell("xrandr --output DP-0 --mode 2560x1440 --rate 240 --primary")
+awful.spawn.with_shell("xrandr --output DP-2 --mode 2560x1440 --rate 240 --above eDP-1")
+--awful.spawn.with_shell("xrandr --output HDMI-0 --mode 1920x1080 --rate 60 --left-of DP-0")
 --awful.spawn.with_shell("setxkbmap -option caps:escape")
 
 -- Work on calendar from :

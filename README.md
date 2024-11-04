@@ -95,6 +95,15 @@ sudo systemctl enable --now bluetooth.service
 env XDG_CURRENT_DESKTOP=GNOME gnome-control-center
 ```
 
+### Definition / resolution
+
+Create ~/.Xresources with :
+```
+#Xft.dpi: 192
+# 155 : Good zoom
+Xft.dpi: 155
+```
+
 ## TODO 
 https://github.com/lcpz/awesome-copycats : chose themes[7]
 `sudo pacman -S zsh`
