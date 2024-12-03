@@ -411,6 +411,7 @@ awful.screen.connect_for_each_screen(function(s)
 					arc_thickness=1,
                     size=24,
                     font="Play 7",
+                    warning_msg_position="top_right",
 					show_notification_mode="on_click"}),
                 sprtr,
                 myredshift_temp,
@@ -520,6 +521,8 @@ globalkeys = gears.table.join(
     -- Custom program
     awful.key({ modkey,           }, "e", function () awful.spawn("nemo") end,
               {description = "open nemo", group = "launcher"}),
+    awful.key({ modkey,           }, "z", function () awful.spawn("alacritty -e ranger") end,
+              {description = "open ranger", group = "launcher"}),
     awful.key({ modkey,           }, "$", function () awful.spawn("speedcrunch") end,
               {description = "Launch speedcrunch", group = "launcher"}),
     awful.key({ }, "Print", scrot_full,
@@ -598,7 +601,7 @@ globalkeys = gears.table.join(
 
     -- Power shortcut
     awful.key({}, "XF86PowerOff", function() 
-        awful.spawn.with_shell("zenity --question --title='Extinction !' --text='Confirmation?' --timeout 10; [ $? == 1 ] || shutdown -h now")
+        awful.spawn.with_shell("zenity --question --title='Extinction !' --text='Confirmation?' --timeout 60; [ $? == 1 ] || shutdown -h now")
     end)
     -- End of power shortcut
 
@@ -731,7 +734,7 @@ awful.rules.rules = {
                      keys = clientkeys,
                      buttons = clientbuttons,
                      screen = awful.screen.preferred,
-                     placement = awful.placement.no_overlap+awful.placement.no_offscreen
+                     placement = awful.placement.no_overlap+awful.placement.no_offscreen+awful.placement.centered
      }
     },
 
@@ -774,9 +777,9 @@ awful.rules.rules = {
       }, properties = { titlebars_enabled = false }
     },
 
-    -- Set Firefox to always map on the tag named "2" on screen 1.
-    -- { rule = { class = "Firefox" },
-    --   properties = { screen = 1, tag = "2" } },
+    -- Set Firefox to always map on the tag named "9" on screen 1.
+    { rule = { class = "Firefox" },
+       properties = { screen = 1, tag = "9" } },
 }
 -- }}}
 
