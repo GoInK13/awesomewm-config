@@ -21,7 +21,7 @@ function widget.get_widget(widgets_args)
             resize = true,
             widget = wibox.widget.imagebox,
         },
-        max_value = 100,
+        max_value = 150,
         thickness = thickness,
         start_angle = 4.71238898, -- 2pi*3/4
         forced_height = size,
