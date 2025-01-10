@@ -5,8 +5,13 @@ run() {
         "$@" &
     fi
 }
+run_dark() {
+    if ! pgrep -f "$1"; then
+        GTK_THEME=Adwaita:dark "$@" &
+    fi
+}
 sleep 1
-run "rhythmbox"
+run_dark "rhythmbox"
 run "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1"
 run "numlockx"
 run "dropbox"
