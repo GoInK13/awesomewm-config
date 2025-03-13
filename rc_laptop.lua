@@ -157,9 +157,30 @@ myredshift_logo   = {
     image = "/home/pierrot/.config/awesome/Others/temperature.svg",
     widget = wibox.widget.imagebox
 }
+
 --Set default value
 rs_temperature = 6500
-rs_brightness = 100
+-- Get brightness
+local brightness_path = "/sys/class/backlight/amdgpu_bl1/brightness"
+awful.spawn.easy_async(
+    {"sh", "-c", "cat " .. brightness_path},
+    function(stdout, stderr, reason, exit_code)
+        if exit_code == 0 and stdout then
+            local brightness = tonumber(stdout:match("%d+"))
+            brightness = math.floor((brightness*100+127)/255)
+            rs_brightness = brightness
+        else
+            -- Handle errors
+            awful.spawn.easy_async(
+                {"notify-send", "Error", "Could not read brightness: " .. (stderr or reason or "Unknown error")},
+                function() end
+            )
+            rs_brightness = 100
+        end
+        myredshift_bright.text = " " .. rs_brightness .. "%"
+    end
+)
+
 -- Function to really set brightness with backlight and redshift
 function f_set_brightness()
     --awful.spawn.with_shell("echo " .. math.floor(1.0+(rs_brightness/10)) .. " > /dev/shm/test")
@@ -781,7 +802,7 @@ awful.rules.rules = {
 
     -- Set Firefox to always map on the tag named "9" on screen 1.
     { rule = { class = "Firefox" },
-       properties = { screen = 1, tag = "9" } },
+       properties = { screen = 1, tag = "8" } },
 }
 -- }}}
 
