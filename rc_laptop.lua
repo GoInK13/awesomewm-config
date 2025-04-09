@@ -489,6 +489,41 @@ globalkeys = gears.table.join(
               {description = "view previous", group = "tag"}),
     awful.key({ modkey,           }, "Right",  awful.tag.viewnext,
               {description = "view next", group = "tag"}),
+    awful.key({ modkey,           }, "Up",
+        function()
+            if awful.screen.focused().selected_tag.index >= 10 then
+                awful.screen.focused().tags[13]:view_only()
+            else
+                awful.tag.viewidx(3)
+            end
+        end,
+              {description = "view 3 next", group = "tag"}),
+    awful.key({ modkey,           }, "Down",
+        function()
+            if awful.screen.focused().selected_tag.index <= 3 then
+                awful.screen.focused().tags[1]:view_only()
+            else
+                awful.tag.viewidx(-3)
+            end
+        end,
+              {description = "view 3 next", group = "tag"}),
+    -- Move client to next screen
+    awful.key({ modkey, "Shift"   }, "Left",
+        function()
+            if awful.screen.focused().selected_tag.index>=2 then
+                client.focus:move_to_tag(client.focus.screen.tags[awful.screen.focused().selected_tag.index-1])
+                awful.tag.viewidx(-1)
+            end
+        end,
+              {description = "Move previous", group = "tag"}),
+    awful.key({ modkey, "Shift"   }, "Right",
+        function()
+            if awful.screen.focused().selected_tag.index<=12 then
+                client.focus:move_to_tag(client.focus.screen.tags[awful.screen.focused().selected_tag.index+1])
+                awful.tag.viewidx(1)
+            end
+        end,
+              {description = "Move previous", group = "tag"}),
 
 --Mod1 is Alt_L
     awful.key({ modkey, "Mod1"     }, "j",   awful.tag.viewprev,
@@ -680,7 +715,6 @@ clientkeys = gears.table.join(
 -- Bind all key numbers to tags.
 -- Be careful: we use keycodes to make it work on any keyboard layout.
 -- This should map on the top row of your keyboard, usually 1 to 9.
-
 tag_list_print = {'²', '1','2','3','4','5','6','7','8','9','0','°','+'}
 tag_list_key   = {'²', '&','é','"',"'",'(','-','è','_','ç','à',')','='}
 for i = 1, 13 do

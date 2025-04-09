@@ -104,7 +104,31 @@ Create ~/.Xresources with :
 Xft.dpi: 155
 ```
 
+### Add desktop shortcuts 
+
+in /usr/share/applications :
+
+create a application.desktop :
+
+```
+[Desktop Entry]
+Version=1.0
+Type=Application
+Exec=/usr/lib/firefox/firefox -P csvplot -kiosk /opt/csvplot/index.html
+Terminal=false
+X-MultipleArgs=false
+Icon=firefox
+StartupWMClass=firefox
+DBusActivatable=false
+Categories=GNOME;GTK;Network;WebBrowser;
+MimeType=application/json;application/pdf;application/rdf+xml;application/rss+xml;application/x-xpinstall;application/xhtml+xml;application/xml;audio/flac;audio/ogg;audio/webm;image/avif;image/gif;image/jpeg;image/png;image/svg+xml;image/webp;text/html;text/xml;video/ogg;video/webm;x-scheme-handler/chrome;x-scheme-handler/http;x-scheme-handler/https;x-scheme-handler/mailto;
+StartupNotify=true
+Actions=new-window;new-private-window;open-profile-manager;
+Name=csv plot
+```
+
 ## TODO 
 https://github.com/lcpz/awesome-copycats : chose themes[7]
 `sudo pacman -S zsh`
 ohmyz.sh/#install
+
