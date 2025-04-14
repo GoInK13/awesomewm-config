@@ -106,9 +106,9 @@ Xft.dpi: 155
 
 ### Add desktop shortcuts 
 
-in /usr/share/applications :
+in ~/.local/share/applications/ :
 
-create a application.desktop :
+create an application.desktop :
 
 ```
 [Desktop Entry]
