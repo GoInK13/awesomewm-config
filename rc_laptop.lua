@@ -489,7 +489,7 @@ globalkeys = gears.table.join(
               {description = "view previous", group = "tag"}),
     awful.key({ modkey,           }, "Right",  awful.tag.viewnext,
               {description = "view next", group = "tag"}),
-    awful.key({ modkey,           }, "Up",
+    awful.key({ modkey,           }, "Down",
         function()
             if awful.screen.focused().selected_tag.index >= 10 then
                 awful.screen.focused().tags[13]:view_only()
@@ -498,7 +498,7 @@ globalkeys = gears.table.join(
             end
         end,
               {description = "view 3 next", group = "tag"}),
-    awful.key({ modkey,           }, "Down",
+    awful.key({ modkey,           }, "Up",
         function()
             if awful.screen.focused().selected_tag.index <= 3 then
                 awful.screen.focused().tags[1]:view_only()
