@@ -127,6 +127,20 @@ Actions=new-window;new-private-window;open-profile-manager;
 Name=csv plot
 ```
 
+Add profile for firefox:
+
+```
+sudo vim /usr/share/applications/firefox.desktop 
+```
+
+then modify:
+
+```
+Exec=/usr/lib/firefox/firefox -P default-release %u
+```
+
+Then reload interface
+
 ## TODO 
 https://github.com/lcpz/awesome-copycats : chose themes[7]
 `sudo pacman -S zsh`
