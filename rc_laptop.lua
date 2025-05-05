@@ -37,6 +37,8 @@ local volume_pip = require('awesome-wm-widgets.pactl-widget.volume')
 -- Battery widget
 local batteryarc_widget = require("awesome-wm-widgets.batteryarc-widget.batteryarc")
 local screenshot = require("awesome-wm-widgets.screenshot.screenshot")
+-- Wifi widget
+local net_widgets = require("awesome-wm-widgets.net_widgets")
 
 -- {{{ Error handling
 -- Check if awesome encountered an error during startup and fell back to
@@ -320,6 +322,17 @@ temperature_widget:connect_signal("button::press",
 )
 -- End of TCC
 
+-- Wifi connection
+net_wireless = net_widgets.wireless({
+    interface   = "wlan0",
+    timeout     = 5,
+    popup_signal = true
+})
+-- Ethernet connection
+net_wired = net_widgets.indicator({
+    interfaces  = {"enp1s0"},
+    timeout     = 5
+})
 
 -- Create a wibox for each screen and add it
 local taglist_buttons = gears.table.join(
@@ -435,6 +448,10 @@ awful.screen.connect_for_each_screen(function(s)
                 myredshift_bright,
                 sprtr,
                 volume_pip({widget_type = 'arc'}),
+                sprtr,
+                net_wireless,
+                sprtr,
+                net_wired,
                 sprtr,
 				batteryarc_widget({show_current_level=true, 
 					arc_thickness=1,
