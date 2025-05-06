@@ -326,12 +326,15 @@ temperature_widget:connect_signal("button::press",
 net_wireless = net_widgets.wireless({
     interface   = "wlan0",
     timeout     = 5,
-    popup_signal = true
+    popup_signal = true,
+    onclick      = "env XDG_CURRENT_DESKTOP=GNOME gnome-control-center wifi"
 })
 -- Ethernet connection
 net_wired = net_widgets.indicator({
     interfaces  = {"enp1s0"},
-    timeout     = 5
+    timeout     = 5,
+    onclick      = "env XDG_CURRENT_DESKTOP=GNOME gnome-control-center network",
+    hidedisconnected = true
 })
 
 -- Create a wibox for each screen and add it
@@ -450,7 +453,6 @@ awful.screen.connect_for_each_screen(function(s)
                 volume_pip({widget_type = 'arc'}),
                 sprtr,
                 net_wireless,
-                sprtr,
                 net_wired,
                 sprtr,
 				batteryarc_widget({show_current_level=true, 
