@@ -252,22 +252,36 @@ rhythmbox_widget = wibox.widget {
 watch(
     "rhythmbox-client --no-start --print-playing", 1,
     function(widget, stdout, stderr, exitreason, exitcode)
-        rhythmbox_widget:get_children_by_id('title')[1]:set_text(stdout)
+        local handle = io.popen("playerctl status -p rhythmbox 2>/dev/null")
+        if handle then
+            local result = handle:read("*a") -- Lit toute la sortie
+            handle:close()
+            status = result:match("^%s*(.-)%s*$") -- Nettoie la sortie de playerctl
+            if status == "Playing" then
+                rhythmbox_widget:get_children_by_id('icon')[1]:set_image("/usr/share/icons/AdwaitaLegacy/48x48/legacy/media-playback-start.png")
+                rhythmbox_widget:get_children_by_id('title')[1]:set_text(stdout)
+            elseif status == "Paused" then
+                rhythmbox_widget:get_children_by_id('icon')[1]:set_image(nil)
+                rhythmbox_widget:get_children_by_id('title')[1]:set_text(" "..stdout)
+            end
+        else
+            rhythmbox_widget:get_children_by_id('title')[1]:set_text(" "..stdout)
+        end
     end)
 rhythmbox_widget:connect_signal("button::press",
     function(_, _, _, button)
         if button == 3 then
             awful.spawn("rhythmbox-client --play")
-            rhythmbox_widget:get_children_by_id('icon')[1]:set_image("/usr/share/icons/Yaru/scalable/multimedia/play-symbolic.svg")
+            rhythmbox_widget:get_children_by_id('icon')[1]:set_image("/usr/share/icons/AdwaitaLegacy/48x48/legacy/media-playback-start.png")
         elseif button == 1 then
             awful.spawn("rhythmbox-client --pause")
-            rhythmbox_widget:get_children_by_id('icon')[1]:set_image("/usr/share/icons/Yaru/scalable/multimedia/pause-symbolic.svg")
+            rhythmbox_widget:get_children_by_id('icon')[1]:set_image(nil)
         elseif button == 9 then
             awful.spawn("rhythmbox-client --next")
-            rhythmbox_widget:get_children_by_id('icon')[1]:set_image("/usr/share/icons/Yaru/scalable/multimedia/play-symbolic.svg")
+            rhythmbox_widget:get_children_by_id('icon')[1]:set_image("/usr/share/icons/AdwaitaLegacy/48x48/legacy/media-playback-start.png")
         elseif button == 8 then
             awful.spawn("rhythmbox-client --previous")
-            rhythmbox_widget:get_children_by_id('icon')[1]:set_image("/usr/share/icons/Yaru/scalable/multimedia/play-symbolic.svg")
+            rhythmbox_widget:get_children_by_id('icon')[1]:set_image("/usr/share/icons/AdwaitaLegacy/48x48/legacy/media-playback-start.png")
         end
     end)
 --End of rhythmbox
@@ -437,7 +451,6 @@ awful.screen.connect_for_each_screen(function(s)
             screen = screen.primary, -- Only display on primary screen
             {
                 layout = wibox.layout.fixed.horizontal,
-                sprtr,
                 rhythmbox_widget,
                 sprtr,
                 cpu_widget({enable_kill_button=true}),
@@ -602,6 +615,8 @@ globalkeys = gears.table.join(
               {description = "open ranger", group = "launcher"}),
     awful.key({ modkey,           }, "$", function () awful.spawn("speedcrunch") end,
               {description = "Launch speedcrunch", group = "launcher"}),
+    awful.key({ modkey,           }, "!", function () awful.spawn.with_shell("feh ~/Images/header_pinout.jpg") end,
+              {description = "Launch RPI GPIO", group = "launcher"}),
     awful.key({ }, "Print", scrot_full,
           {description = "Take a screenshot of entire screen", group = "screenshot"}),
     awful.key({ "Shift" }, "Print", scrot_selection,
