@@ -625,6 +625,8 @@ globalkeys = gears.table.join(
           {description = "Take a screenshot of focused window", group = "screenshot"}),
     awful.key({ "Ctrl" }, "Print", scrot_delay,
           {description = "Take a screenshot of delay", group = "screenshot"}),
+    awful.key({ "Ctrl", "Mod1" }, "Delete", function () awful.spawn("NeoHtop") end,
+          {description = "Launch NeoHtop", group = "launcher"}),
 
 
 
