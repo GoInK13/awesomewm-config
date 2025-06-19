@@ -1,19 +1,40 @@
 local awful = require("awful")
 local naughty = require("naughty")
 
-timers = { 5,10 }
+timers = { 2, 5,10 }
 screenshot = os.getenv("HOME") .. "/Images/screenshot/$(date +%F_%T).png"
 
-function scrot_full()
-    scrot("scrot " .. screenshot .. " -e 'xclip -selection c -t image/png < $f', scrot_callback", scrot_callback, "Take a screenshot of entire screen")
+function scrot_full(path)
+    if path == nil then
+        new_path = screenshot
+        comment = "Screenshot of entire screen"
+    else 
+        new_path = path
+        comment = "Snapshot of entire screen"
+    end
+    scrot("scrot " .. new_path .. " -e 'xclip -selection c -t image/png < $f'", scrot_callback, comment)
 end
 
-function scrot_selection()
-    scrot("sleep 0.5 && scrot -s " .. screenshot .. " -e 'xclip -selection c -t image/png < $f'", scrot_callback, "Take a screenshot of selection")
+function scrot_selection(path)
+    if path == nil then
+        new_path = screenshot
+        comment = "Screenshot of selection"
+    else 
+        new_path = path
+        comment = "Snapshot of selection"
+    end
+    scrot("sleep 0.5 && scrot -s " .. new_path .. " -e 'xclip -selection c -t image/png < $f'", scrot_callback, comment)
 end
 
-function scrot_window()
-    scrot("scrot -u " .. screenshot .. " -e 'xclip -selection c -t image/png < $f'", scrot_callback, "Take a screenshot of focused window")    
+function scrot_window(path)
+    if path == nil then
+        new_path = screenshot
+        comment = "Screenshot of window"
+    else 
+        new_path = path
+        comment = "Snapshot of window"
+    end
+    scrot("scrot -u " .. screenshot .. " -e 'xclip -selection c -t image/png < $f'", scrot_callback, comment)
 end
 
 function scrot_delay()
