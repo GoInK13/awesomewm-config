@@ -137,19 +137,70 @@ local function worker(user_args)
     watch("acpi", timeout, update_widget, batteryarc_widget)
 
     -- Popup with battery info
-    local notification
     local function show_battery_status()
-        awful.spawn.easy_async([[bash -c 'acpi']],
-                function(stdout, _, _, _)
+        -- The command to get detailed battery information
+        awful.spawn.easy_async("upower -i /org/freedesktop/UPower/devices/battery_BAT0",
+            function(stdout, stderr, _, exit_code)
+                -- If the command failed or gave an error, show the error
+                if exit_code ~= 0 then
+                    naughty.notify {
+                        title = "Battery Status Error",
+                        text = stderr,
+                        preset = naughty.config.presets.critical
+                    }
+                    return
+                end
+
+                -- Initialize variables to store the parsed data
+                local state, percentage, time_left, energy, voltage
+
+                -- Loop through each line of the command's output
+                for line in stdout:gmatch("[^\n]+") do
+                    -- Use string matching to find the key and value on each line
+                    local key, value = line:match("^%s*(.-):%s*(.*)$")
+                    if key then
+                        if key == "state" then
+                            state = value
+                        elseif key == "percentage" then
+                            percentage = value
+                        -- Handle both "time to empty" and "time to full"
+                        elseif key == "time to empty" or key == "time to full" then
+                            time_left = value
+                        elseif key == "energy" then
+                            energy = value
+                        elseif key == "voltage" then
+                            voltage = value
+                        end
+                    end
+                end
+
+                -- Check if all values were found before creating the notification
+                if state and percentage and time_left and energy and voltage then
+                    -- Construct the formatted text for the notification
+                    local notification_text = string.format(
+                        "<b>Percentage:</b> %s\n<b>State:</b> %s\n<b>Time:</b> %s\n<b>Energy:</b> %s\n<b>Voltage:</b> %s",
+                        percentage, state, time_left, energy, voltage
+                    )
+
+                    -- Destroy the old notification and create the new one
                     naughty.destroy(notification)
                     notification = naughty.notify {
-                        text = stdout,
-                        title = "Battery status",
-                        timeout = 5,
-                        width = 200,
+                        title    = "🔋 Battery Status",
+                        text     = notification_text,
+                        timeout  = 5,
+                        width    = 200,
                         position = notification_position,
                     }
-                end)
+                else
+                    -- Fallback notification if parsing fails
+                    naughty.destroy(notification)
+                    notification = naughty.notify {
+                        title   = "Battery Status",
+                        text    = "Could not parse battery information.",
+                        timeout = 5,
+                    }
+                end
+            end)
     end
 
     if show_notification_mode == 'on_hover' then
