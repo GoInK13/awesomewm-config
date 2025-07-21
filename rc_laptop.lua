@@ -162,6 +162,24 @@ myredshift_logo   = {
 
 --Set default value
 rs_temperature = 6500
+-- Get brightness max
+local brightness_max_path = "/sys/class/backlight/amdgpu_bl1/max_brightness"
+awful.spawn.easy_async(
+    {"sh", "-c", "cat " .. brightness_max_path},
+    function(stdout, stderr, reason, exit_code)
+        if exit_code == 0 and stdout then
+            rs_brightness_max = tonumber(stdout:match("%d+"))
+        else
+            -- Handle errors
+            awful.spawn.easy_async(
+                {"notify-send", "Error", "Could not read brightness max: " .. (stderr or reason or "Unknown error")},
+                function() end
+            )
+            rs_brightness_max = 100
+        end
+    end
+)
+
 -- Get brightness
 local brightness_path = "/sys/class/backlight/amdgpu_bl1/brightness"
 awful.spawn.easy_async(
@@ -169,7 +187,7 @@ awful.spawn.easy_async(
     function(stdout, stderr, reason, exit_code)
         if exit_code == 0 and stdout then
             local brightness = tonumber(stdout:match("%d+"))
-            brightness = math.floor((brightness*100+127)/255)
+            brightness = math.floor((brightness*100+127)/rs_brightness_max)
             rs_brightness = brightness
         else
             -- Handle errors
@@ -187,10 +205,10 @@ awful.spawn.easy_async(
 function f_set_brightness()
     --awful.spawn.with_shell("echo " .. math.floor(1.0+(rs_brightness/10)) .. " > /dev/shm/test")
     os.setlocale('C')
-    local brightness_backlight = math.floor(rs_brightness*255/100)
-    if rs_brightness < 0 then
+    local brightness_backlight = math.floor(rs_brightness*rs_brightness_max/100)
+    if rs_brightness <= 0 then
         local brightness = 1.0+(rs_brightness/10)
-        awful.spawn.with_shell("echo 0 > /sys/class/backlight/amdgpu_bl1/brightness") 
+        awful.spawn.with_shell("echo 236 > /sys/class/backlight/amdgpu_bl1/brightness") 
         awful.spawn("redshift -oP -O " .. rs_temperature .. " -b " .. brightness)
     else
         awful.spawn.with_shell("echo " .. brightness_backlight .. " > /sys/class/backlight/amdgpu_bl1/brightness") 
