@@ -70,6 +70,8 @@ end
 --beautiful.init(gears.filesystem.get_themes_dir() .. "default/theme.lua")
 beautiful.init(gears.filesystem.get_themes_dir() .. "default/theme.lua")
 beautiful.wallpaper = "/home/pierrot/Images/Spidey.png"
+--beautiful.wallpaper = "/home/pierrot/Images/2025-08_Shooting/104A4662-Modifier.jpg"
+beautiful.font = "Liberation Sans 9"
 
 -- This is used later as the default terminal and editor to run.
 terminal = "alacritty"
@@ -423,8 +425,10 @@ local function set_wallpaper(s)
         if type(wallpaper) == "function" then
             wallpaper = wallpaper(s)
         end
-        gears.wallpaper.maximized(wallpaper, s, true)
-        --gears.wallpaper.centered(wallpaper, s)
+        gears.wallpaper.maximized(wallpaper, s, false)
+        --gears.wallpaper.centered(wallpaper, s, nil, 0.45)
+        --gears.wallpaper.fit(wallpaper, s)
+        --gears.wallpaper.tiled(wallpaper, s)
     end
 end
 
@@ -488,7 +492,7 @@ awful.screen.connect_for_each_screen(function(s)
                 sprtr,
 				batteryarc_widget({show_current_level=true, 
 					arc_thickness=1,
-                    size=24,
+                    size=26,
                     font="Play 7",
                     warning_msg_position="top_right",
 					show_notification_mode="on_click"}),
@@ -633,7 +637,7 @@ globalkeys = gears.table.join(
               {description = "open ranger", group = "launcher"}),
     awful.key({ modkey,           }, "$", function () awful.spawn("speedcrunch") end,
               {description = "Launch speedcrunch", group = "launcher"}),
-    awful.key({ modkey,           }, "!", function () awful.spawn.with_shell("feh ~/Images/header_pinout.jpg") end,
+    awful.key({ modkey,           }, "!", function () awful.spawn.with_shell("feh ~/Images/header_pinout.jpg ~/Images/ASCII-Table-wide.svg -B '#ffffff'") end,
               {description = "Launch RPI GPIO", group = "launcher"}),
     awful.key({ "Ctrl" }, "Print", function() scrot_full() end,
           {description = "Take a screenshot of entire screen", group = "screenshot"}),
@@ -651,6 +655,9 @@ globalkeys = gears.table.join(
           {description = "Take a screenshot of delay", group = "screenshot"}),
     awful.key({ "Ctrl", "Mod1" }, "Delete", function () awful.spawn("NeoHtop") end,
           {description = "Launch NeoHtop", group = "launcher"}),
+    awful.key({ modkey, "Ctrl" }, "u", function () awful.spawn.with_shell("rofi -modi emoji -show emoji") end,
+          {description = "Emoji picker", group = "launcher"}),
+
 
     awful.key({ modkey,           }, "l",     function () awful.tag.incmwfact( 0.05)          end,
               {description = "increase master width factor", group = "layout"}),

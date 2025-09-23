@@ -175,12 +175,19 @@ local function worker(user_args)
                 end
 
                 -- Check if all values were found before creating the notification
-                if state and percentage and time_left and energy and voltage then
+                if state and percentage and energy and voltage then
                     -- Construct the formatted text for the notification
-                    local notification_text = string.format(
-                        "<b>Percentage:</b> %s\n<b>State:</b> %s\n<b>Time:</b> %s\n<b>Energy:</b> %s\n<b>Voltage:</b> %s",
-                        percentage, state, time_left, energy, voltage
-                    )
+                    local text_parts = {}
+                    table.insert(text_parts, string.format("<b>Percentage:</b> %s", percentage))
+                    table.insert(text_parts, string.format("<b>State:</b> %s", state))
+                    -- Only add the "Time" line if it exists
+                    if time_left then
+                        table.insert(text_parts, string.format("<b>Time:</b> %s", time_left))
+                    end
+                    table.insert(text_parts, string.format("<b>Energy:</b> %s", energy))
+                    table.insert(text_parts, string.format("<b>Voltage:</b> %s", voltage))
+
+                    local notification_text = table.concat(text_parts, "\n")
 
                     -- Destroy the old notification and create the new one
                     naughty.destroy(notification)

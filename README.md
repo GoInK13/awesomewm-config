@@ -146,3 +146,7 @@ https://github.com/lcpz/awesome-copycats : chose themes[7]
 `sudo pacman -S zsh`
 ohmyz.sh/#install
 
+# Sound issues
+
+echo 1 > /sys/bus/pci/devices/0000\:66\:00.6/remove
+echo 1 > /sys/bus/pci/rescan
