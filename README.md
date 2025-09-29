@@ -150,3 +150,11 @@ ohmyz.sh/#install
 
 echo 1 > /sys/bus/pci/devices/0000\:66\:00.6/remove
 echo 1 > /sys/bus/pci/rescan
+
+# Hyprland
+
+sudo pacman -S hyprland swaync xdg-desktop-portal-hyprland ttf-jetbrains-mono-nerd waybar nwg-look gnome-themes-extra
+
+change color
+    wlsunset -t 4000
+
