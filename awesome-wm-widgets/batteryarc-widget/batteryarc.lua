@@ -152,7 +152,7 @@ local function worker(user_args)
                 end
 
                 -- Initialize variables to store the parsed data
-                local state, percentage, time_left, energy, voltage
+                local state, percentage, time_left, energy, voltage, power
 
                 -- Loop through each line of the command's output
                 for line in stdout:gmatch("[^\n]+") do
@@ -170,6 +170,8 @@ local function worker(user_args)
                             energy = value
                         elseif key == "voltage" then
                             voltage = value
+                        elseif key == "energy-rate" then
+                            power = value
                         end
                     end
                 end
@@ -186,6 +188,7 @@ local function worker(user_args)
                     end
                     table.insert(text_parts, string.format("<b>Energy:</b> %s", energy))
                     table.insert(text_parts, string.format("<b>Voltage:</b> %s", voltage))
+                    table.insert(text_parts, string.format("<b>Power:</b> %s", power))
 
                     local notification_text = table.concat(text_parts, "\n")
 

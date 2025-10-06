@@ -637,7 +637,7 @@ globalkeys = gears.table.join(
               {description = "open ranger", group = "launcher"}),
     awful.key({ modkey,           }, "$", function () awful.spawn("speedcrunch") end,
               {description = "Launch speedcrunch", group = "launcher"}),
-    awful.key({ modkey,           }, "!", function () awful.spawn.with_shell("feh ~/Images/header_pinout.jpg ~/Images/ASCII-Table-wide.svg -B '#ffffff'") end,
+    awful.key({ modkey,           }, "!", function () awful.spawn.with_shell("feh -Z ~/Images/header_pinout.jpg ~/Images/ASCII-Table-wide.svg -B '#ffffff'") end,
               {description = "Launch RPI GPIO", group = "launcher"}),
     awful.key({ "Ctrl" }, "Print", function() scrot_full() end,
           {description = "Take a screenshot of entire screen", group = "screenshot"}),
