@@ -11,7 +11,7 @@ run_dark() {
     fi
 }
 sleep 1
-run_dark "rhythmbox"
+#run_dark "rhythmbox"
 run "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1"
 run "numlockx"
 run "dropbox"

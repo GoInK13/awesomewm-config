@@ -75,6 +75,7 @@ beautiful.font = "Liberation Sans 9"
 
 -- This is used later as the default terminal and editor to run.
 terminal = "alacritty"
+--terminal = "kitty"
 editor = os.getenv("EDITOR") or "editor"
 editor_cmd = terminal .. " -e " .. editor
 
@@ -306,6 +307,129 @@ rhythmbox_widget:connect_signal("button::press",
     end)
 --End of rhythmbox
 
+-- A function to focus a client by its class, or run a command if it's not found.
+function focus_or_run(class_name, command)
+    local found_client = false
+    -- Look for the client on any screen
+    for _, c in ipairs(client.get()) do
+        if c.class == class_name then
+            -- If found, jump to its tag and focus it
+            c:jump_to()
+            found_client = true
+            break
+        end
+    end
+
+    -- If not found after checking all clients, run the command to create it
+    if not found_client then
+        awful.spawn(command, false)
+    end
+end
+
+-- A "smart" media control function that checks if ncmpcpp is running.
+-- If it is, it sends commands to mpd via mpc.
+-- Otherwise, it sends general commands via playerctl.
+function smart_media_control(mpc_command, playerctl_command)
+    -- The command to check if the 'ncmpcpp' process exists.
+    -- The '-x' flag ensures an exact match on the process name.
+    local check_cmd = "pgrep -x ncmpcpp"
+
+    awful.spawn.easy_async_with_shell(check_cmd, function(stdout, stderr, reason, exitcode)
+        if exitcode == 0 then
+            -- Success! pgrep found a process, so ncmpcpp is running.
+            -- We use mpc to control mpd.
+            awful.spawn("mpc --host='/home/pierrot/.config/mpd/socket' " .. mpc_command, false)
+        else
+            -- Failure. pgrep found nothing, so ncmpcpp is not running.
+            -- We fall back to the general playerctl command.
+            awful.spawn("playerctl " .. playerctl_command, false)
+        end
+    end)
+end
+
+--Widget for mpc/mpd/ncmpcpp
+-- =======================================================
+-- MPD (ncmpcpp) Music Widget
+-- =======================================================
+
+-- Define the widget layout (similar to your old one)
+mpd_widget = wibox.widget {
+    {
+        id = 'icon',
+        widget = wibox.widget.imagebox,
+    },
+    {
+        id = 'text',
+        widget = wibox.widget.textbox,
+    },
+    layout = wibox.layout.fixed.horizontal,
+    spacing = 8,
+}
+
+-- Add mouse button controls to the widget
+mpd_widget:connect_signal("button::press", function(_, _, _, button)
+    if button == 1 then -- Left click: Play/Pause
+        awful.spawn("mpc --host='/home/pierrot/.config/mpd/socket' toggle", false)
+    elseif button == 3 then -- Right click: Focus or open ncmpcpp
+        focus_or_run("ncmpcpp", "kitty --class ncmpcpp -e ncmpcpp")
+    elseif button == 4 then -- Scroll up: Next song
+        awful.spawn("mpc --host='/home/pierrot/.config/mpd/socket' next", false)
+    elseif button == 5 then -- Scroll down: Previous song
+        awful.spawn("mpc --host='/home/pierrot/.config/mpd/socket' prev", false)
+    end
+end)
+
+-- A timer to update the widget every second
+gears.timer {
+    timeout = 1,
+    autostart = true,
+    callback = function()
+        -- Command to get status and song info in one go
+        -- The format string "%artist% - %title%" is used by mpc
+        local cmd = 'mpc --host="/home/pierrot/.config/mpd/socket" status -f "%artist% - %title%"'
+        
+        awful.spawn.easy_async_with_shell(cmd, function(stdout)
+            -- If MPD is stopped, stdout will be empty
+            if stdout == "" or stdout == nil then
+                mpd_widget:get_children_by_id('text')[1]:set_text("")
+                mpd_widget:get_children_by_id('icon')[1]:set_image(nil)
+                return
+            end
+
+            local song, status
+            -- Split the output into lines
+            local lines = {}
+            for line in stdout:gmatch("([^\n]*)\n?") do
+                table.insert(lines, line)
+            end
+
+            -- mpc status output:
+            -- Line 1: Song title (if playing/paused)
+            -- Line 2: Status like "[playing] #1/15   0:05/3:24 (2%)"
+            -- Line 3: Volume, repeat, etc.
+            song = lines[1]
+            status_line = lines[2]
+
+            -- Check if the status line contains "[playing]"
+            if status_line and status_line:match("%[playing%]") then
+                status = "Playing"
+            else
+                status = "Paused" -- Or stopped, but we show it as paused
+            end
+
+            -- Update the widget based on the status
+            if status == "Playing" then
+                mpd_widget:get_children_by_id('text')[1]:set_markup(' ' .. song)
+                mpd_widget:get_children_by_id('icon')[1]:set_image("/usr/share/icons/AdwaitaLegacy/48x48/legacy/media-playback-start.png")
+            else
+                mpd_widget:get_children_by_id('text')[1]:set_markup(' <span foreground="#555555">' .. song .. '</span>')
+                mpd_widget:get_children_by_id('icon')[1]:set_image(nil)
+            end
+        end)
+    end
+}
+--END of Widget for mpc/mpd/ncmpcpp
+
 --Start temperature
 temperature_widget =  wibox.widget {
         {   
@@ -473,7 +597,8 @@ awful.screen.connect_for_each_screen(function(s)
             screen = screen.primary, -- Only display on primary screen
             {
                 layout = wibox.layout.fixed.horizontal,
-                rhythmbox_widget,
+                --rhythmbox_widget,
+                mpd_widget,
                 sprtr,
                 cpu_widget({enable_kill_button=true}),
                 ram_widget(),
@@ -633,7 +758,8 @@ globalkeys = gears.table.join(
     -- Custom program
     awful.key({ modkey,           }, "e", function () awful.spawn("nemo") end,
               {description = "open nemo", group = "launcher"}),
-    awful.key({ modkey,           }, "z", function () awful.spawn("alacritty -e ranger") end,
+    --awful.key({ modkey,           }, "z", function () awful.spawn("alacritty -e ranger") end,
+    awful.key({ modkey,           }, "z", function () awful.spawn("kitty -e ranger") end,
               {description = "open ranger", group = "launcher"}),
     awful.key({ modkey,           }, "$", function () awful.spawn("speedcrunch") end,
               {description = "Launch speedcrunch", group = "launcher"}),
@@ -711,12 +837,25 @@ globalkeys = gears.table.join(
     awful.key({}, "XF86AudioRaiseVolume", function () volume_pip:inc(5) end),
     awful.key({}, "XF86AudioMute", function () volume_pip:toggle() end),
     -- Media Keys
+--    awful.key({}, "XF86AudioPlay", function()
+--        awful.util.spawn("playerctl play-pause", false) end),
+--    awful.key({}, "XF86AudioNext", function()
+--        awful.util.spawn("playerctl next", false) end),
+--    awful.key({}, "XF86AudioPrev", function()
+--        awful.util.spawn("playerctl previous", false) end),
+--    awful.key({}, "XF86AudioPlay", function()
+--        awful.util.spawn("mpc --host='/home/pierrot/.config/mpd/socket' toggle", false) end),
+--    awful.key({}, "XF86AudioNext", function()
+--        awful.util.spawn("mpc --host='/home/pierrot/.config/mpd/socket' next", false) end),
+--    awful.key({}, "XF86AudioPrev", function()
+--        awful.util.spawn("mpc --host='/home/pierrot/.config/mpd/socket' prev", false) end),
     awful.key({}, "XF86AudioPlay", function()
-        awful.util.spawn("playerctl play-pause", false) end),
+        smart_media_control("toggle", "play-pause") end),
     awful.key({}, "XF86AudioNext", function()
-        awful.util.spawn("playerctl next", false) end),
+        smart_media_control("next", "next") end),
     awful.key({}, "XF86AudioPrev", function()
-        awful.util.spawn("playerctl previous", false) end),
+        smart_media_control("prev", "previous") end),
+
     awful.key({}, "XF86MonBrightnessDown", function() f_redshift_brightness(5) end),
     awful.key({}, "XF86MonBrightnessUp", function() f_redshift_brightness(4) end),
     --End of shortcut
@@ -998,3 +1137,5 @@ mytextclock:connect_signal("button::press",
 
 --Auto launch app
 awful.spawn.with_shell("~/.config/awesome/autorun.sh")
+awful.spawn.with_shell('if ! pgrep -f "kitty --class ncmpcpp"; then kitty --class ncmpcpp -e ncmpcpp; fi')
+
