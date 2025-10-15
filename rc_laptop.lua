@@ -1043,6 +1043,9 @@ awful.rules.rules = {
     -- Set Firefox to always map on the tag named "9" on screen 1.
     { rule = { class = "Firefox" },
        properties = { screen = 1, tag = "8" } },
+
+    { rule = { class = "ncmpcpp" },
+       properties = { screen = 1, tag = "²" } },
 }
 -- }}}
 
@@ -1137,5 +1140,3 @@ mytextclock:connect_signal("button::press",
 
 --Auto launch app
 awful.spawn.with_shell("~/.config/awesome/autorun.sh")
-awful.spawn.with_shell('if ! pgrep -f "kitty --class ncmpcpp"; then kitty --class ncmpcpp -e ncmpcpp; fi')
-
