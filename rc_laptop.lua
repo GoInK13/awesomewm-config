@@ -455,15 +455,18 @@ watch(
     --'bash -c "sensors | grep \'Sensor 2:\' | awk \'{print $3}\'"', 5,
     --Laptop version :
     --'bash -c "sensors | grep \'Package id\' | awk \'{print $4}\'"', 5,
-    'bash -c "sensors | grep \'Tctl:\' | awk \'{print $2}\'"', 5,
+    [[bash -c "sensors | grep 'Tctl:' | awk '{printf \"%.0f°\", $2}'"]],
+    5,
     function(widget, stdout, stderr, exitreason, exitcode)
         temperature_widget:get_children_by_id('temp_cpu')[1]:set_text(stdout)
-    end)
+    end
+)
 watch(
     --Desktop version :
     --'bash -c "sensors | grep \'Tctl:\' | awk \'{print $2}\'"', 5,
     --Laptop version :
-    'bash -c "sensors | grep \'edge:\' | awk \'{print $2}\'"', 5,
+    [[bash -c "sensors | grep 'edge:' | awk '{printf \"%.0f°\", $2}'"]],
+    5,
     function(widget, stdout, stderr, exitreason, exitcode)
         temperature_widget:get_children_by_id('temp_gpu')[1]:set_text(stdout)
     end)
