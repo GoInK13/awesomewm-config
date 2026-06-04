@@ -1066,6 +1066,9 @@ awful.rules.rules = {
 
     { rule = { class = "ncmpcpp" },
        properties = { screen = 1, tag = "²" } },
+
+    { rule = { class = "vesktop" },
+       properties = { screen = 1, tag = "+" } },
 }
 -- }}}
 
