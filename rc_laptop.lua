@@ -69,8 +69,9 @@ end
 -- Themes define colours, icons, font and wallpapers.
 --beautiful.init(gears.filesystem.get_themes_dir() .. "default/theme.lua")
 beautiful.init(gears.filesystem.get_themes_dir() .. "default/theme.lua")
-beautiful.wallpaper = "/home/pierrot/Images/Spidey.png"
---beautiful.wallpaper = "/home/pierrot/Images/2025-08_Shooting/104A4662-Modifier.jpg"
+--beautiful.wallpaper = "/home/pierrot/Images/Spidey.png"
+-- beautiful.wallpaper = "/home/pierrot/Images/2025-08_Shooting/104A4662-Modifier.jpg"
+beautiful.wallpaper = "/home/pierrot/Images/2025-08_Shooting/PXL_20251116_151459745.jpg"
 beautiful.font = "Liberation Sans 9"
 
 -- This is used later as the default terminal and editor to run.
@@ -697,7 +698,15 @@ globalkeys = gears.table.join(
                 awful.tag.viewidx(-1)
             end
         end,
-              {description = "Move previous", group = "tag"}),
+      {description = "Move next", group = "tag"}),
+    awful.key({ modkey, "Shift", "Mod1"   }, "j",
+        function()
+            if awful.screen.focused().selected_tag.index>=2 then
+                client.focus:move_to_tag(client.focus.screen.tags[awful.screen.focused().selected_tag.index-1])
+                awful.tag.viewidx(-1)
+            end
+        end,
+      {description = "Move next", group = "tag"}),
     awful.key({ modkey, "Shift"   }, "Right",
         function()
             if awful.screen.focused().selected_tag.index<=12 then
@@ -705,7 +714,15 @@ globalkeys = gears.table.join(
                 awful.tag.viewidx(1)
             end
         end,
-              {description = "Move previous", group = "tag"}),
+      {description = "Move previous", group = "tag"}),
+    awful.key({ modkey, "Shift", "Mod1"   }, "k",
+        function()
+            if awful.screen.focused().selected_tag.index<=12 then
+                client.focus:move_to_tag(client.focus.screen.tags[awful.screen.focused().selected_tag.index+1])
+                awful.tag.viewidx(1)
+            end
+        end,
+      {description = "Move previous", group = "tag"}),
 
 --Mod1 is Alt_L
     awful.key({ modkey, "Mod1"     }, "j",   awful.tag.viewprev,
@@ -766,7 +783,7 @@ globalkeys = gears.table.join(
               {description = "open ranger", group = "launcher"}),
     awful.key({ modkey,           }, "$", function () awful.spawn("speedcrunch") end,
               {description = "Launch speedcrunch", group = "launcher"}),
-    awful.key({ modkey,           }, "!", function () awful.spawn.with_shell("feh -Z ~/Images/header_pinout.jpg ~/Images/ASCII-Table-wide.svg -B '#ffffff'") end,
+    awful.key({ modkey,           }, "!", function () awful.spawn.with_shell("feh -Z ~/Images/header_pinout.jpg ~/Images/ASCII-Table-wide.svg ~/Images/moonlander.png -B '#ffffff'") end,
               {description = "Launch RPI GPIO", group = "launcher"}),
     awful.key({ "Ctrl" }, "Print", function() scrot_full() end,
           {description = "Take a screenshot of entire screen", group = "screenshot"}),

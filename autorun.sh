@@ -26,6 +26,7 @@ if [ "$DAY_OF_WEEK" -ge 1 ] && [ "$DAY_OF_WEEK" -le 5 ]; then
     run /usr/lib/firefox/firefox -P Discord
     sleep 1
     run /usr/lib/firefox/firefox -P default-release
+    run /home/pierrot/Documents/Cosma/softs/Vesktop-1.6.5.AppImage
   fi
 fi
 setxkbmap fr oss -option caps:escape
