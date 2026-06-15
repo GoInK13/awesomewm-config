@@ -29,5 +29,5 @@ if [ "$DAY_OF_WEEK" -ge 1 ] && [ "$DAY_OF_WEEK" -le 5 ]; then
     run /home/pierrot/Documents/Cosma/softs/Vesktop-1.6.5.AppImage
   fi
 fi
-setxkbmap fr oss -option caps:escape
+setxkbmap -I/etc/X11/xkb fr oss -option caps:escape
 xset r rate 300 25
