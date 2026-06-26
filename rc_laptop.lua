@@ -40,6 +40,12 @@ local screenshot = require("awesome-wm-widgets.screenshot.screenshot")
 -- Wifi widget
 local net_widgets = require("awesome-wm-widgets.net_widgets")
 
+-- Set timeout from firefox to 5s
+table.insert(naughty.dbus.config.mapping, 1, {
+    {appname = "Firefox"},
+    {timeout = 5}
+})
+
 -- {{{ Error handling
 -- Check if awesome encountered an error during startup and fell back to
 -- another config (This code will only ever execute for the fallback config)
