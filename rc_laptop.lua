@@ -884,6 +884,8 @@ globalkeys = gears.table.join(
 
     awful.key({}, "XF86MonBrightnessDown", function() f_redshift_brightness(5) end),
     awful.key({}, "XF86MonBrightnessUp", function() f_redshift_brightness(4) end),
+    awful.key({modkey}, "F1", function() f_redshift_temperature(5) end),
+    awful.key({modkey}, "F2", function() f_redshift_temperature(4) end),
     --End of shortcut
 
     -- Power shortcut
