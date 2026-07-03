@@ -50,9 +50,10 @@ function scrot_delay()
     scrot_callback()
 end
 
-function scrot(cmd , callback, args)
-    awful.util.spawn_with_shell(cmd)
-    callback(args)
+function scrot(cmd, callback, args)
+    awful.spawn.easy_async_with_shell(cmd, function()
+        callback(args)
+    end)
 end
 function scrot_callback(text)
     naughty.notify({
