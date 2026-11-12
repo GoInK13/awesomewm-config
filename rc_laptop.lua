@@ -29,7 +29,7 @@ local logout_menu_widget = require("awesome-wm-widgets.logout-menu-widget.logout
 local net_speed_widget = require("awesome-wm-widgets.net-speed-widget.net-speed")
 local ram_widget = require("awesome-wm-widgets.ram-widget.ram-widget")
 local cpu_widget = require("awesome-wm-widgets.cpu-widget.cpu-widget")
---To get instant name on rhythmbox
+--Run a command periodically and feed its output to a widget
 local watch = require("awful.widget.watch")
 --local mpris_widget = require("awesome-wm-widgets.mpris-widget")
 -- New volume
@@ -172,44 +172,40 @@ myredshift_logo   = {
 
 --Set default value
 rs_temperature = 6500
--- Get brightness max
-local brightness_max_path = "/sys/class/backlight/amdgpu_bl1/max_brightness"
-awful.spawn.easy_async(
-    {"sh", "-c", "cat " .. brightness_max_path},
-    function(stdout, stderr, reason, exit_code)
-        if exit_code == 0 and stdout then
-            rs_brightness_max = tonumber(stdout:match("%d+"))
-        else
-            -- Handle errors
-            awful.spawn.easy_async(
-                {"notify-send", "Error", "Could not read brightness max: " .. (stderr or reason or "Unknown error")},
-                function() end
-            )
-            rs_brightness_max = 100
-        end
-    end
-)
+BACKLIGHT_DIR = "/sys/class/backlight/amdgpu_bl1"
 
--- Get brightness
-local brightness_path = "/sys/class/backlight/amdgpu_bl1/brightness"
-awful.spawn.easy_async(
-    {"sh", "-c", "cat " .. brightness_path},
-    function(stdout, stderr, reason, exit_code)
-        if exit_code == 0 and stdout then
-            local brightness = tonumber(stdout:match("%d+"))
-            brightness = math.floor((brightness*100+127)/rs_brightness_max)
-            rs_brightness = brightness
-        else
-            -- Handle errors
-            awful.spawn.easy_async(
-                {"notify-send", "Error", "Could not read brightness: " .. (stderr or reason or "Unknown error")},
-                function() end
-            )
-            rs_brightness = 100
-        end
-        myredshift_bright.text = " " .. rs_brightness .. "%"
+--- Read a number from a sysfs file, synchronously (sysfs reads never block).
+-- @tparam string path Absolute path of the file to read.
+-- @tparam number default Value returned when the file cannot be read or parsed.
+-- @treturn number The number in the file, or `default`.
+-- @treturn boolean true if the read succeeded, false if `default` was used.
+-- @usage local max = read_sysfs_number("/sys/class/backlight/amdgpu_bl1/max_brightness", 255)
+function read_sysfs_number(path, default)
+    local file = io.open(path, "r")
+    if not file then
+        return default, false
     end
-)
+    local value = tonumber((file:read("*a") or ""):match("%d+"))
+    file:close()
+    if value == nil then
+        return default, false
+    end
+    return value, true
+end
+
+-- Read backlight max and current value in order, so the percentage is always defined
+local max_ok, cur_ok
+rs_brightness_max, max_ok = read_sysfs_number(BACKLIGHT_DIR .. "/max_brightness", 255)
+if rs_brightness_max <= 0 then
+    rs_brightness_max, max_ok = 255, false
+end
+local brightness_raw
+brightness_raw, cur_ok = read_sysfs_number(BACKLIGHT_DIR .. "/brightness", rs_brightness_max)
+rs_brightness = math.floor((brightness_raw * 100 + rs_brightness_max / 2) / rs_brightness_max)
+myredshift_bright.text = " " .. rs_brightness .. "%"
+if not (max_ok and cur_ok) then
+    awful.spawn({"notify-send", "Error", "Could not read backlight values in " .. BACKLIGHT_DIR}, false)
+end
 
 -- Function to really set brightness with backlight and redshift
 function f_set_brightness()
@@ -218,10 +214,10 @@ function f_set_brightness()
     local brightness_backlight = math.floor(rs_brightness*rs_brightness_max/100)
     if rs_brightness <= 0 then
         local brightness = 1.0+(rs_brightness/10)
-        awful.spawn.with_shell("echo 236 > /sys/class/backlight/amdgpu_bl1/brightness") 
+        awful.spawn.with_shell("echo 236 > " .. BACKLIGHT_DIR .. "/brightness") 
         awful.spawn("redshift -oP -O " .. rs_temperature .. " -b " .. brightness)
     else
-        awful.spawn.with_shell("echo " .. brightness_backlight .. " > /sys/class/backlight/amdgpu_bl1/brightness") 
+        awful.spawn.with_shell("echo " .. brightness_backlight .. " > " .. BACKLIGHT_DIR .. "/brightness") 
         awful.spawn("redshift -oP -O " .. rs_temperature .. " -b 1.0")
     end
     os.setlocale(os.getenv("LANG"))
@@ -262,57 +258,6 @@ myredshift_temp:connect_signal("button::press", function(_, _, _, button) f_reds
 myredshift_bright:connect_signal("button::press", function(_, _, _, button) f_redshift_brightness(button) end)
 --end of redshift
 
---Rhythmbox
-rhythmbox_widget = wibox.widget {
-        {
-            id = 'icon',
---            forced_width = 10,
---            image = ICONS_DIR .. 'down.svg',
-            widget = wibox.widget.imagebox
-        },
-        {
-            id = 'title',
-            align = 'right',
-            widget = wibox.widget.textbox
-        },
-        layout = wibox.layout.fixed.horizontal
-    }
-watch(
-    "rhythmbox-client --no-start --print-playing", 1,
-    function(widget, stdout, stderr, exitreason, exitcode)
-        local handle = io.popen("playerctl status -p rhythmbox 2>/dev/null")
-        if handle then
-            local result = handle:read("*a") -- Lit toute la sortie
-            handle:close()
-            status = result:match("^%s*(.-)%s*$") -- Nettoie la sortie de playerctl
-            if status == "Playing" then
-                rhythmbox_widget:get_children_by_id('icon')[1]:set_image("/usr/share/icons/AdwaitaLegacy/48x48/legacy/media-playback-start.png")
-                rhythmbox_widget:get_children_by_id('title')[1]:set_text(stdout)
-            elseif status == "Paused" then
-                rhythmbox_widget:get_children_by_id('icon')[1]:set_image(nil)
-                rhythmbox_widget:get_children_by_id('title')[1]:set_text(" "..stdout)
-            end
-        else
-            rhythmbox_widget:get_children_by_id('title')[1]:set_text(" "..stdout)
-        end
-    end)
-rhythmbox_widget:connect_signal("button::press",
-    function(_, _, _, button)
-        if button == 3 then
-            awful.spawn("rhythmbox-client --play")
-            rhythmbox_widget:get_children_by_id('icon')[1]:set_image("/usr/share/icons/AdwaitaLegacy/48x48/legacy/media-playback-start.png")
-        elseif button == 1 then
-            awful.spawn("rhythmbox-client --pause")
-            rhythmbox_widget:get_children_by_id('icon')[1]:set_image(nil)
-        elseif button == 9 then
-            awful.spawn("rhythmbox-client --next")
-            rhythmbox_widget:get_children_by_id('icon')[1]:set_image("/usr/share/icons/AdwaitaLegacy/48x48/legacy/media-playback-start.png")
-        elseif button == 8 then
-            awful.spawn("rhythmbox-client --previous")
-            rhythmbox_widget:get_children_by_id('icon')[1]:set_image("/usr/share/icons/AdwaitaLegacy/48x48/legacy/media-playback-start.png")
-        end
-    end)
---End of rhythmbox
 
 -- A function to focus a client by its class, or run a command if it's not found.
 function focus_or_run(class_name, command)
@@ -333,6 +278,9 @@ function focus_or_run(class_name, command)
     end
 end
 
+MPD_SOCKET = "/home/pierrot/.config/mpd/socket"
+MPC_CMD = "mpc --host='" .. MPD_SOCKET .. "'"
+
 -- A "smart" media control function that checks if ncmpcpp is running.
 -- If it is, it sends commands to mpd via mpc.
 -- Otherwise, it sends general commands via playerctl.
@@ -345,7 +293,7 @@ function smart_media_control(mpc_command, playerctl_command)
         if exitcode == 0 then
             -- Success! pgrep found a process, so ncmpcpp is running.
             -- We use mpc to control mpd.
-            awful.spawn("mpc --host='/home/pierrot/.config/mpd/socket' " .. mpc_command, false)
+            awful.spawn(MPC_CMD .. " " .. mpc_command, false)
         else
             -- Failure. pgrep found nothing, so ncmpcpp is not running.
             -- We fall back to the general playerctl command.
@@ -376,65 +324,78 @@ mpd_widget = wibox.widget {
 -- Add mouse button controls to the widget
 mpd_widget:connect_signal("button::press", function(_, _, _, button)
     if button == 1 then -- Left click: Play/Pause
-        awful.spawn("mpc --host='/home/pierrot/.config/mpd/socket' toggle", false)
+        awful.spawn(MPC_CMD .. " toggle", false)
     elseif button == 3 then -- Right click: Focus or open ncmpcpp
         focus_or_run("ncmpcpp", "kitty --class ncmpcpp -e ncmpcpp")
     elseif button == 4 then -- Scroll up: Next song
-        awful.spawn("mpc --host='/home/pierrot/.config/mpd/socket' next", false)
+        awful.spawn(MPC_CMD .. " next", false)
     elseif button == 5 then -- Scroll down: Previous song
-        awful.spawn("mpc --host='/home/pierrot/.config/mpd/socket' prev", false)
+        awful.spawn(MPC_CMD .. " prev", false)
     end
 end)
 
--- A timer to update the widget every second
-gears.timer {
-    timeout = 1,
-    autostart = true,
-    callback = function()
-        -- Command to get status and song info in one go
-        -- The format string "%artist% - %title%" is used by mpc
-        local cmd = 'mpc --host="/home/pierrot/.config/mpd/socket" status -f "%artist% - %title%"'
-        
-        awful.spawn.easy_async_with_shell(cmd, function(stdout)
-            -- If MPD is stopped, stdout will be empty
-            if stdout == "" or stdout == nil then
-                mpd_widget:get_children_by_id('text')[1]:set_text("")
-                mpd_widget:get_children_by_id('icon')[1]:set_image(nil)
-                return
-            end
+MPD_PLAY_ICON = "/usr/share/icons/AdwaitaLegacy/48x48/legacy/media-playback-start.png"
 
-            local song, status
-            -- Split the output into lines
-            local lines = {}
-            for line in stdout:gmatch("([^\n]*)\n?") do
-                table.insert(lines, line)
-            end
+--- Refresh the mpd widget with the current song and play state (async, non-blocking).
+-- Shows "artist - title" in normal color with a play icon when playing,
+-- greyed out without icon when paused, and clears the widget when stopped.
+-- @treturn nil
+-- @usage update_mpd_widget()
+function update_mpd_widget()
+    local cmd = {"mpc", "--host=" .. MPD_SOCKET, "status", "-f", "%artist% - %title%"}
+    awful.spawn.easy_async(cmd, function(stdout)
+        local text_box = mpd_widget:get_children_by_id('text')[1]
+        local icon_box = mpd_widget:get_children_by_id('icon')[1]
 
-            -- mpc status output:
-            -- Line 1: Song title (if playing/paused)
-            -- Line 2: Status like "[playing] #1/15   0:05/3:24 (2%)"
-            -- Line 3: Volume, repeat, etc.
-            song = lines[1]
-            status_line = lines[2]
+        -- mpc status output:
+        -- Line 1: "artist - title" (only when playing/paused)
+        -- Line 2: status like "[playing] #1/15   0:05/3:24 (2%)"
+        -- When stopped (or mpd unreachable) there is no "[playing]"/"[paused]" line
+        local lines = {}
+        for line in (stdout or ""):gmatch("[^\n]+") do
+            table.insert(lines, line)
+        end
+        local song, status_line = lines[1], lines[2]
+        if not (status_line and status_line:match("^%[%a+%]")) then
+            text_box:set_text("")
+            icon_box:set_image(nil)
+            return
+        end
 
-            -- Check if the status line contains "[playing]"
-            if status_line and status_line:match("%[playing%]") then
-                status = "Playing"
-            else
-                status = "Paused" -- Or stopped, but we show it as paused
-            end
+        local safe_song = gears.string.xml_escape(song)
+        if status_line:match("^%[playing%]") then
+            text_box:set_markup(' ' .. safe_song)
+            icon_box:set_image(MPD_PLAY_ICON)
+        else
+            text_box:set_markup(' <span foreground="#555555">' .. safe_song .. '</span>')
+            icon_box:set_image(nil)
+        end
+    end)
+end
 
-            -- Update the widget based on the status
-            if status == "Playing" then
-                mpd_widget:get_children_by_id('text')[1]:set_markup(' ' .. song)
-                mpd_widget:get_children_by_id('icon')[1]:set_image("/usr/share/icons/AdwaitaLegacy/48x48/legacy/media-playback-start.png")
-            else
-                mpd_widget:get_children_by_id('text')[1]:set_markup(' <span foreground="#555555">' .. song .. '</span>')
-                mpd_widget:get_children_by_id('icon')[1]:set_image(nil)
-            end
-        end)
-    end
-}
+--- Start `mpc idleloop player` and refresh the mpd widget on each player event.
+-- Kills an idleloop orphaned by a previous awesome restart first, and restarts
+-- itself 5 s after the idleloop exits (mpd stopped or restarted).
+-- @treturn nil
+-- @usage start_mpd_idleloop()
+function start_mpd_idleloop()
+    local cmd = {"sh", "-c",
+        'pkill -f "[m]pc --host=/.* idleloop player"; exec mpc --host="$0" idleloop player',
+        MPD_SOCKET}
+    awful.spawn.with_line_callback(cmd, {
+        stdout = function(_) update_mpd_widget() end,
+        exit = function()
+            update_mpd_widget()
+            gears.timer.start_new(5, function()
+                start_mpd_idleloop()
+                return false
+            end)
+        end,
+    })
+end
+
+update_mpd_widget()
+start_mpd_idleloop()
 --END of Widget for mpc/mpd/ncmpcpp
 
 --Start temperature
@@ -607,7 +568,6 @@ awful.screen.connect_for_each_screen(function(s)
             screen = screen.primary, -- Only display on primary screen
             {
                 layout = wibox.layout.fixed.horizontal,
-                --rhythmbox_widget,
                 mpd_widget,
                 sprtr,
                 cpu_widget({enable_kill_button=true}),
